@@ -166,7 +166,6 @@ namespace fire {
         int _main_args = 0;
         bool _introspect = false;
         bool _strict = false;
-        bool _help_flag = false;
         bool _allow_unused = false;
 
     public:
@@ -643,8 +642,6 @@ namespace fire {
         _allow_unused = allow_unused;
 
         parse(argc, argv);
-        identifier help({"-h", "--help", "Print the help message"}, optional<int>());
-        _help_flag = get_and_mark_as_queried(help).second != arg_type::none_t;
         check(false);
     }
 
@@ -654,11 +651,6 @@ namespace fire {
 
         if(! _strict || _main_args > 0) return;
 
-        if(_help_flag) {
-            _::logger.print_help();
-            exit(0);
-        }
-
         if(! _allow_unused) {
             check_named();
             check_positional();
@@ -666,6 +658,7 @@ namespace fire {
 
         if(! _deferred_error.empty()) {
             std::cerr << "Error: " << _deferred_error.get() << std::endl;
+            _::logger.print_help();
             exit(_failure_code);
         }
     }
