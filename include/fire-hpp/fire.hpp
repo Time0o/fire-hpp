@@ -1366,14 +1366,6 @@ int main(int argc, const char ** argv) {\
     return FIRE_EXTRACT_1_PAD_(__VA_ARGS__)();\
 }
 
-#define FIRE_NO_EXCEPTIONS(...) \
-int main(int argc, const char ** argv) {\
-    int main_args = (int) fire::_get_argument_count(FIRE_EXTRACT_1_PAD_(__VA_ARGS__));\
-    fire::_::matcher = fire::_matcher(argc, argv, main_args, true, false);\
-    fire::_::logger.set_program_descr(FIRE_EXTRACT_2_PAD_(__VA_ARGS__));\
-    return FIRE_EXTRACT_1_PAD_(__VA_ARGS__)();\
-}
-
 #define FIRE_FUNC(func, ...) \
 int func(int argc, const char ** argv) {\
     PREPARE_FIRE_(argc, argv, false, __VA_ARGS__);\
