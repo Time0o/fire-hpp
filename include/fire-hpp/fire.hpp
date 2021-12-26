@@ -1374,4 +1374,11 @@ int main(int argc, const char ** argv) {\
     return FIRE_EXTRACT_1_PAD_(__VA_ARGS__)();\
 }
 
+#define FIRE_FUNC(func, ...) \
+int func(int argc, const char ** argv) {\
+    PREPARE_FIRE_(argc, argv, false, __VA_ARGS__);\
+    fire::_::logger.set_program_descr(FIRE_EXTRACT_2_PAD_(__VA_ARGS__));\
+    return FIRE_EXTRACT_1_PAD_(__VA_ARGS__)();\
+}
+
 #endif
