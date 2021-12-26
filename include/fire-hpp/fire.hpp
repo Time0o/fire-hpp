@@ -249,6 +249,8 @@ namespace fire {
 
     class _constraint {
     public:
+        virtual ~_constraint() = default;
+
         virtual std::unique_ptr<_constraint> clone() const = 0;
         virtual void check_constraint(const identifier &, long long) const { _api_assert(false, "Constraint applied to wrong type argument (integral type)"); }
         virtual void check_constraint(const identifier &, long double) const { _api_assert(false, "Constraint applied to wrong type argument (floating point type)"); }
