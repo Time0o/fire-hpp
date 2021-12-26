@@ -27,7 +27,7 @@ set(ignoreMe "${DISABLE_PEDANTIC}")
 
 # Setup Fire to be used in 3rd party project using exports. Create a fire target
 add_library(fire-hpp INTERFACE)
-target_compile_features(fire-hpp INTERFACE cxx_std_11)
+target_compile_features(fire-hpp INTERFACE cxx_std_17)
 target_include_directories(fire-hpp INTERFACE
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)

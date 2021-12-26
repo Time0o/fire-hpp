@@ -47,6 +47,7 @@
 #include <limits>
 #include <cstring>
 #include <memory>
+#include <stdexcept>
 
 #if defined(__EXCEPTIONS) || defined(_CPPUNWIND)
 #define FIRE_EXCEPTIONS_ENABLED_
@@ -1324,6 +1325,32 @@ namespace fire {
         optional<std::string> matched_name = _::matcher.match_named(matched_id.value());
         return matched_name.value_or("");
     }
+
+    template <typename T, class = void>
+    struct is_streamable : std::false_type {};
+
+    template <typename T>
+    struct is_streamable<T, std::void_t<decltype(std::cout << *(T*)0)>> : std::true_type {};
+
+    template<typename T>
+    inline constexpr bool is_streamable_v = is_streamable<T>::value;
+
+    template<typename T>
+    std::enable_if_t<is_streamable_v<T>> run_print_result(T &&result)
+    { std::cout << result << std::endl; }
+
+    template<typename T>
+    std::enable_if_t<!is_streamable_v<T>> run_print_result(T &&)
+    {}
+
+    template<typename FUNC>
+    void run(FUNC &&f)
+    {
+      if constexpr (std::is_void_v<decltype(f())>)
+        f();
+      else
+        run_print_result(f());
+    }
 }
 
 #define EXPAND( x ) x // Required to satisfy buggy MSVC compiler (https://stackoverflow.com/q/5134523/6865804)
@@ -1352,25 +1379,43 @@ namespace fire {
 // FIRE/FIRE_NO_EXCEPTIONS(fired_main[, program_descr])
 // optional parameters implemented using a trick similar to https://stackoverflow.com/a/3048361/6865804
 
+#define FIRE_RUN(__VA_ARGS__)\
+    do {\
+      fire::_::logger.set_program_descr(FIRE_EXTRACT_2_PAD_(__VA_ARGS__));\
+      try {\
+        fire::run([]{ return FIRE_EXTRACT_1_PAD_(__VA_ARGS__)(); });\
+      } catch (std::exception const &e) {\
+        std::cout << "Error: " << e.what() << std::endl;\
+      } catch (...) {\
+        std::cout << "Error: exception" << std::endl;\
+      }\
+      return 0;\
+    } while(0);
+
 #define FIRE(...) \
 int main(int argc, const char ** argv) {\
     PREPARE_FIRE_(argc, argv, false, __VA_ARGS__);\
-    fire::_::logger.set_program_descr(FIRE_EXTRACT_2_PAD_(__VA_ARGS__));\
-    return FIRE_EXTRACT_1_PAD_(__VA_ARGS__)();\
+    FIRE_RUN(__VA_ARGS__);\
 }
 
 #define FIRE_ALLOW_UNUSED(...) \
 int main(int argc, const char ** argv) {\
     PREPARE_FIRE_(argc, argv, true, __VA_ARGS__);\
-    fire::_::logger.set_program_descr(FIRE_EXTRACT_2_PAD_(__VA_ARGS__));\
-    return FIRE_EXTRACT_1_PAD_(__VA_ARGS__)();\
+    FIRE_RUN(__VA_ARGS__);\
 }
 
-#define FIRE_FUNC(func, ...) \
+#define FIRE_LAUNCH(func, ...) \
 int func(int argc, const char ** argv) {\
     PREPARE_FIRE_(argc, argv, false, __VA_ARGS__);\
+    FIRE_RUN(__VA_ARGS__);\
+}
+
+#define FIRE_LAUNCH_ENTRY(...) \
+int main(int argc, const char ** argv) {\
+    PREPARE_FIRE_(argc, argv, true, __VA_ARGS__);\
     fire::_::logger.set_program_descr(FIRE_EXTRACT_2_PAD_(__VA_ARGS__));\
-    return FIRE_EXTRACT_1_PAD_(__VA_ARGS__)();\
+    FIRE_EXTRACT_1_PAD_(__VA_ARGS__)();\
+    return 0;\
 }
 
 #endif
