@@ -48,6 +48,7 @@
 #include <cstring>
 #include <memory>
 #include <stdexcept>
+#include <optional>
 
 #if defined(__EXCEPTIONS) || defined(_CPPUNWIND)
 #define FIRE_EXCEPTIONS_ENABLED_
@@ -82,6 +83,8 @@ namespace fire {
         bool has_value() const { return _exists; }
         T value_or(const T& def) const { return _exists ? _value : def; }
         T value() const { _api_assert(_exists, "accessing unassigned optional"); return _value; }
+
+        operator std::optional<T>() const { return _exists ? std::optional<T>(_value) : std::nullopt; }
     };
 
     struct _escape_exception {
